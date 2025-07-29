@@ -7,10 +7,8 @@ const IdealWeightCalculator = () => {
   const [error, setError] = useState('');
 
   const calculateIdealWeight = () => {
-    // Reset error
     setError('');
 
-    // Validate inputs
     if (!height) {
       setError('Please enter your height');
       return;
@@ -18,50 +16,42 @@ const IdealWeightCalculator = () => {
 
     const heightNum = parseFloat(height);
 
-    if (isNaN(heightNum)) {
+    if (isNaN(heightNum) || heightNum <= 0) {
       setError('Please enter a valid height');
       return;
     }
 
-    // Convert height to cm if needed (assuming input is in cm)
     const heightInCm = heightNum;
-    
-    // Convert height to inches for some formulas
     const heightInInches = heightInCm / 2.54;
-    
-    // Convert height to meters for BMI-based calculation
     const heightInMeters = heightInCm / 100;
 
     // Calculate ideal weight using different formulas
     const calculations = {
-      // BMI-based calculation (BMI of 22 is considered ideal)
       bmi: {
-        name: 'BMI-based (BMI 22)',
-        value: Math.round(22 * heightInMeters * heightInMeters * 10) / 10
+        name: 'BMI-Based',
+        value: Math.round(22 * heightInMeters * heightInMeters * 10) / 10,
+        description: 'Based on BMI of 22'
       },
-      
-      // Devine Formula (1974)
       devine: {
         name: 'Devine Formula',
         value: gender === 'male' 
           ? Math.round((50 + 2.3 * (heightInInches - 60)) * 10) / 10
-          : Math.round((45.5 + 2.3 * (heightInInches - 60)) * 10) / 10
+          : Math.round((45.5 + 2.3 * (heightInInches - 60)) * 10) / 10,
+        description: 'Most commonly used'
       },
-      
-      // Robinson Formula (1983)
       robinson: {
         name: 'Robinson Formula',
         value: gender === 'male'
           ? Math.round((52 + 1.9 * (heightInInches - 60)) * 10) / 10
-          : Math.round((49 + 1.7 * (heightInInches - 60)) * 10) / 10
+          : Math.round((49 + 1.7 * (heightInInches - 60)) * 10) / 10,
+        description: 'Modified Devine'
       },
-      
-      // Miller Formula (1983)
       miller: {
         name: 'Miller Formula',
         value: gender === 'male'
           ? Math.round((56.2 + 1.41 * (heightInInches - 60)) * 10) / 10
-          : Math.round((53.1 + 1.36 * (heightInInches - 60)) * 10) / 10
+          : Math.round((53.1 + 1.36 * (heightInInches - 60)) * 10) / 10,
+        description: 'Most recent formula'
       }
     };
 
@@ -70,7 +60,7 @@ const IdealWeightCalculator = () => {
 
   return (
     <div className="calculator-container">
-      <h1>Ideal Weight Calculator</h1>
+      <h1>🎯 Ideal Weight Calculator</h1>
       <div className="calculator-form">
         <div className="form-group">
           <label htmlFor="height">Height (cm)</label>
@@ -79,9 +69,10 @@ const IdealWeightCalculator = () => {
             id="height"
             value={height}
             onChange={(e) => setHeight(e.target.value)}
-            placeholder="Enter your height"
+            placeholder="Enter your height in centimeters"
           />
         </div>
+        
         <div className="form-group">
           <label htmlFor="gender">Gender</label>
           <select
@@ -93,36 +84,42 @@ const IdealWeightCalculator = () => {
             <option value="female">Female</option>
           </select>
         </div>
-        <button onClick={calculateIdealWeight}>Calculate</button>
+        
+        <button onClick={calculateIdealWeight}>Calculate Ideal Weight</button>
       </div>
+      
       {error && <div className="error-message">{error}</div>}
+      
       {idealWeight && (
         <div className="calculator-grid">
           <div className="calculator-item">
-            <div className="calculator-label">BMI-Based Formula</div>
+            <div className="calculator-label">{idealWeight.bmi.name}</div>
             <div className="calculator-value">{idealWeight.bmi.value} kg</div>
-            <div className="calculator-note">Based on BMI of 22</div>
+            <div className="calculator-note">{idealWeight.bmi.description}</div>
           </div>
           <div className="calculator-item">
-            <div className="calculator-label">Devine Formula</div>
+            <div className="calculator-label">{idealWeight.devine.name}</div>
             <div className="calculator-value">{idealWeight.devine.value} kg</div>
-            <div className="calculator-note">Most common formula</div>
+            <div className="calculator-note">{idealWeight.devine.description}</div>
           </div>
           <div className="calculator-item">
-            <div className="calculator-label">Robinson Formula</div>
+            <div className="calculator-label">{idealWeight.robinson.name}</div>
             <div className="calculator-value">{idealWeight.robinson.value} kg</div>
-            <div className="calculator-note">Modified Devine formula</div>
+            <div className="calculator-note">{idealWeight.robinson.description}</div>
           </div>
           <div className="calculator-item">
-            <div className="calculator-label">Miller Formula</div>
+            <div className="calculator-label">{idealWeight.miller.name}</div>
             <div className="calculator-value">{idealWeight.miller.value} kg</div>
-            <div className="calculator-note">Most recent formula</div>
+            <div className="calculator-note">{idealWeight.miller.description}</div>
           </div>
         </div>
       )}
-      <div className="calculator-note">
-        These are estimates based on different formulas. Consult with a healthcare professional for personalized advice.
-      </div>
+      
+      {idealWeight && (
+        <div className="water-tip">
+          💡 Note: These are estimates based on different scientific formulas. Individual factors like muscle mass, bone density, and overall health should be considered. Consult with a healthcare professional for personalized advice.
+        </div>
+      )}
     </div>
   );
 };

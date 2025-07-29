@@ -7,14 +7,12 @@ const CalorieCalculator = () => {
   const [weight, setWeight] = useState('');
   const [activityLevel, setActivityLevel] = useState('moderate');
   const [goal, setGoal] = useState('maintain');
-  const [calories, setCalories] = useState(null);
+  const [results, setResults] = useState(null);
   const [error, setError] = useState('');
 
   const calculateCalories = () => {
-    // Reset error
     setError('');
 
-    // Validate inputs
     if (!age || !height || !weight) {
       setError('Please fill in all fields');
       return;
@@ -24,8 +22,9 @@ const CalorieCalculator = () => {
     const heightNum = parseFloat(height);
     const weightNum = parseFloat(weight);
 
-    if (isNaN(ageNum) || isNaN(heightNum) || isNaN(weightNum)) {
-      setError('Please enter valid numbers');
+    if (isNaN(ageNum) || isNaN(heightNum) || isNaN(weightNum) || 
+        ageNum <= 0 || heightNum <= 0 || weightNum <= 0) {
+      setError('Please enter valid positive numbers');
       return;
     }
 
@@ -37,124 +36,153 @@ const CalorieCalculator = () => {
       bmr = 10 * weightNum + 6.25 * heightNum - 5 * ageNum - 161;
     }
 
-    // Apply activity multiplier
+    // Activity multipliers
     const activityMultipliers = {
-      sedentary: 1.2,      // Little or no exercise
-      light: 1.375,        // Light exercise 1-3 days/week
-      moderate: 1.55,       // Moderate exercise 3-5 days/week
-      active: 1.725,       // Hard exercise 6-7 days/week
-      veryActive: 1.9      // Very hard exercise & physical job or training twice per day
+      sedentary: 1.2,
+      light: 1.375,
+      moderate: 1.55,
+      active: 1.725,
+      veryActive: 1.9
     };
 
-    let tdee = bmr * activityMultipliers[activityLevel];
+    const tdee = bmr * activityMultipliers[activityLevel];
 
-    // Adjust for goal
+    // Goal adjustments
     const goalAdjustments = {
-      lose: -500,    // Weight loss (deficit)
-      maintain: 0,   // Maintenance
-      gain: 500      // Weight gain (surplus)
+      lose: -500,
+      maintain: 0,
+      gain: 500
     };
 
-    tdee += goalAdjustments[goal];
+    const targetCalories = tdee + goalAdjustments[goal];
 
-    setCalories(Math.round(tdee));
+    setResults({
+      bmr: Math.round(bmr),
+      tdee: Math.round(tdee),
+      target: Math.round(targetCalories),
+      goal: goal
+    });
+  };
+
+  const getGoalDescription = (goalType) => {
+    switch(goalType) {
+      case 'lose': return 'Weight Loss (500 cal deficit)';
+      case 'maintain': return 'Weight Maintenance';
+      case 'gain': return 'Weight Gain (500 cal surplus)';
+      default: return '';
+    }
   };
 
   return (
-    <div className="calculator-card">
-      <h2 className="calculator-title">Calorie Calculator</h2>
-      
-      <div className="form-group">
-        <label className="form-label">Age</label>
-        <input
-          type="number"
-          className="form-input"
-          value={age}
-          onChange={(e) => setAge(e.target.value)}
-          placeholder="Enter your age"
-        />
+    <div className="calculator-container">
+      <h1>🔥 Calorie Calculator</h1>
+      <div className="calculator-form">
+        <div className="form-group">
+          <label htmlFor="age">Age</label>
+          <input
+            type="number"
+            id="age"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+            placeholder="Enter your age"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="gender">Gender</label>
+          <select 
+            id="gender"
+            value={gender} 
+            onChange={(e) => setGender(e.target.value)}
+          >
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="height">Height (cm)</label>
+          <input
+            type="number"
+            id="height"
+            value={height}
+            onChange={(e) => setHeight(e.target.value)}
+            placeholder="Enter height in centimeters"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="weight">Weight (kg)</label>
+          <input
+            type="number"
+            id="weight"
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            placeholder="Enter weight in kilograms"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="activity">Activity Level</label>
+          <select 
+            id="activity"
+            value={activityLevel} 
+            onChange={(e) => setActivityLevel(e.target.value)}
+          >
+            <option value="sedentary">Sedentary (little or no exercise)</option>
+            <option value="light">Light (exercise 1-3 days/week)</option>
+            <option value="moderate">Moderate (exercise 3-5 days/week)</option>
+            <option value="active">Active (exercise 6-7 days/week)</option>
+            <option value="veryActive">Very Active (hard exercise daily)</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="goal">Goal</label>
+          <select 
+            id="goal"
+            value={goal} 
+            onChange={(e) => setGoal(e.target.value)}
+          >
+            <option value="lose">Weight Loss</option>
+            <option value="maintain">Maintenance</option>
+            <option value="gain">Weight Gain</option>
+          </select>
+        </div>
+
+        <button onClick={calculateCalories}>Calculate Calories</button>
       </div>
 
-      <div className="form-group">
-        <label className="form-label">Gender</label>
-        <select 
-          className="form-input" 
-          value={gender} 
-          onChange={(e) => setGender(e.target.value)}
-        >
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-        </select>
-      </div>
+      {error && <div className="error-message">{error}</div>}
 
-      <div className="form-group">
-        <label className="form-label">Height (cm)</label>
-        <input
-          type="number"
-          className="form-input"
-          value={height}
-          onChange={(e) => setHeight(e.target.value)}
-          placeholder="Enter height in centimeters"
-        />
-      </div>
-
-      <div className="form-group">
-        <label className="form-label">Weight (kg)</label>
-        <input
-          type="number"
-          className="form-input"
-          value={weight}
-          onChange={(e) => setWeight(e.target.value)}
-          placeholder="Enter weight in kilograms"
-        />
-      </div>
-
-      <div className="form-group">
-        <label className="form-label">Activity Level</label>
-        <select 
-          className="form-input" 
-          value={activityLevel} 
-          onChange={(e) => setActivityLevel(e.target.value)}
-        >
-          <option value="sedentary">Sedentary (little or no exercise)</option>
-          <option value="light">Light (exercise 1-3 days/week)</option>
-          <option value="moderate">Moderate (exercise 3-5 days/week)</option>
-          <option value="active">Active (exercise 6-7 days/week)</option>
-          <option value="veryActive">Very Active (hard exercise daily)</option>
-        </select>
-      </div>
-
-      <div className="form-group">
-        <label className="form-label">Goal</label>
-        <select 
-          className="form-input" 
-          value={goal} 
-          onChange={(e) => setGoal(e.target.value)}
-        >
-          <option value="lose">Weight Loss</option>
-          <option value="maintain">Maintenance</option>
-          <option value="gain">Weight Gain</option>
-        </select>
-      </div>
-
-      <button className="btn btn-block" onClick={calculateCalories}>
-        Calculate Calories
-      </button>
-
-      {error && (
-        <div className="result result-error">
-          {error}
+      {results && !error && (
+        <div className="calculator-grid">
+          <div className="calculator-item">
+            <div className="calculator-label">BMR</div>
+            <div className="calculator-value">{results.bmr}</div>
+            <div className="calculator-note">Basal Metabolic Rate</div>
+          </div>
+          <div className="calculator-item">
+            <div className="calculator-label">TDEE</div>
+            <div className="calculator-value">{results.tdee}</div>
+            <div className="calculator-note">Total Daily Energy</div>
+          </div>
+          <div className="calculator-item">
+            <div className="calculator-label">Target Calories</div>
+            <div className="calculator-value">{results.target}</div>
+            <div className="calculator-note">For your goal</div>
+          </div>
+          <div className="calculator-item">
+            <div className="calculator-label">Goal</div>
+            <div className="calculator-value">{getGoalDescription(results.goal)}</div>
+            <div className="calculator-note">Your selected target</div>
+          </div>
         </div>
       )}
 
-      {calories && !error && (
-        <div className="result result-success">
-          <h3>Your Daily Calorie Needs: {calories} calories</h3>
-          <p>
-            {goal === 'lose' && 'This is a calorie deficit to help you lose weight.'}
-            {goal === 'maintain' && 'This will help you maintain your current weight.'}
-            {goal === 'gain' && 'This is a calorie surplus to help you gain weight.'}
-          </p>
+      {results && !error && (
+        <div className="water-tip">
+          💡 These calculations are based on the Mifflin-St Jeor equation. Individual needs may vary based on genetics, medical conditions, and other factors. Consider consulting with a nutritionist for personalized advice.
         </div>
       )}
     </div>
